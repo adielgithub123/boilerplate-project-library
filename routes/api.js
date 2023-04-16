@@ -20,10 +20,10 @@ const bookSchema = new mongoose.Schema({
 const Book = mongoose.model('Book', bookSchema);
 
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   app.route('/api/books')
-    .get(function (req, res){
+    .get(function(req, res) {
       //response will be array of book objects
       //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
       Book.find({})
@@ -36,18 +36,18 @@ module.exports = function (app) {
         })
         .catch(err => res.send(err))
     })
-    
-    .post(function (req, res){
+
+    .post(function(req, res) {
       //response will contain new book object including atleast _id and title
-      let title = req.body.title;
-      if(title===null){
+      let title = req.body.title || "";
+      if (title === "") {
         res.send("missing required field title")
       }
-      else{
+      else {
         Book.create({
           title
         })
-          .then((data)=>{
+          .then((data) => {
             delete data._doc.comments;
             delete data._doc.__v;
             res.send(data)
@@ -55,8 +55,8 @@ module.exports = function (app) {
           .catch(err => res.send(err))
       }
     })
-    
-    .delete(function(req, res){
+
+    .delete(function(req, res) {
       //if successful response will be 'complete delete successful'
       Book.deleteMany({})
         .then(data => res.send("complete delete successful"))
@@ -66,16 +66,16 @@ module.exports = function (app) {
 
 
   app.route('/api/books/:id')
-    .get(function (req, res){
+    .get(function(req, res) {
       let bookid = req.params.id;
-      
+
       if (mongoose.Types.ObjectId.isValid(bookid)) {
         Book.findById(bookid)
           .then(book => {
-            if(book===null){
+            if (book === null) {
               res.send("no book exists");
             }
-            else{
+            else {
               book._doc['commentcount'] = book['comments'].length;
               res.send(book)
             }
@@ -83,27 +83,27 @@ module.exports = function (app) {
           .catch(err => res.send(err))
         //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
       }
-      else{
+      else {
         res.send("no book exists");
       }
     })
-    
-    .post(function(req, res){
-      let bookid = req.params.id;
-      let comment = req.body.comment;
-      if(bookid==""){
+
+    .post(function(req, res) {
+      let bookid = req.params.id || "";
+      let comment = req.body.comment || "";
+      if (bookid === "") {
         res.send("missing required field title");
       }
-      else if(comment==""){
+      else if (comment === "") {
         res.send("missing required field comment");
       }
       else if (mongoose.Types.ObjectId.isValid(bookid)) {
         Book.findByIdAndUpdate(bookid, { $push: { comments: comment } }, { new: true })
           .then(updatedBook => {
-            if(updatedBook===null){
+            if (updatedBook === null) {
               res.send("no book exists");
             }
-            else{
+            else {
               updatedBook._doc['commentcount'] = updatedBook['comments'].length;
               res.send(updatedBook)
             }
@@ -111,13 +111,13 @@ module.exports = function (app) {
           .catch(err => res.send(err))
         //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
       }
-      else{
+      else {
         res.send("no book exists");
       }
       //json res format same as .get
     })
-    
-    .delete(function(req, res){
+
+    .delete(function(req, res) {
       let bookid = req.params.id;
       //if successful response will be 'delete successful'
       if (bookid == "") {
@@ -125,12 +125,12 @@ module.exports = function (app) {
       }
       else {
         if (mongoose.Types.ObjectId.isValid(bookid)) {
-          Issue.findByIdAndDelete(bookid)
+          Book.findByIdAndDelete(bookid)
             .then((deletedBook) => {
-              if(deletedBook===null){
+              if (deletedBook === null) {
                 res.send("no book exists")
               }
-              else{
+              else {
                 res.send("delete successful")
               }
             })
@@ -142,5 +142,5 @@ module.exports = function (app) {
         }
       }
     });
-  
+
 };
