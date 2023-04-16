@@ -121,11 +121,11 @@ module.exports = function (app) {
       let bookid = req.params.id;
       //if successful response will be 'delete successful'
       if (bookid == "") {
-        res.send({ "error": "missing _id" })
+        res.send("missing required field title")
       }
       else {
-        if (mongoose.Types.ObjectId.isValid(_id)) {
-          Issue.findByIdAndDelete({_id: _id})
+        if (mongoose.Types.ObjectId.isValid(bookid)) {
+          Issue.findByIdAndDelete(bookid)
             .then((deletedBook) => {
               if(deletedBook===null){
                 res.send("no book exists")
